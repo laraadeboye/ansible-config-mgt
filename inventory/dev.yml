@@ -1,21 +1,13 @@
-- name: update web and nfs servers
-  hosts: webservers, nfs
-  become: yes
-  tasks:
-    - name: ensure wireshark is the latest version
-      yum:
-        name: wireshark
-        state: latest
+ [nfs]
+ 172.31.39.177 ansible_ssh_user=ec2-user
 
-- name: update lb and db server
-  hosts: lb, db
-  become: yes
-  tasks:
-    - name: Update apt repo
-      apt:
-        update_cache: yes
+ [webservers]
+ 172.31.32.255 ansible_ssh_user=ec2-user
+ 172.31.35.27 ansible_ssh_user=ec2-user
+ 172.31.32.34 ansible_ssh_user=ec2-user
 
-    - name: ensure wireshark is the latest version
-      apt:
-        name: wireshark
-        state: latest
+ [db]
+ 172.31.38.76 ansible_ssh_user=ubuntu
+
+ [lb]
+ 172.31.38.76 ansible_ssh_user=ubuntu
