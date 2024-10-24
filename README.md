@@ -3,10 +3,6 @@ fresh test 24.10
 test 2 24.10
 aaaa 24.20
 
-What is happening????/
+What is happening????
 
-
-Okay payload URL
-oooooooooooooooo
-
-Okay Okay
+Artifacts to copy
