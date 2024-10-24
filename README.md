@@ -6,3 +6,4 @@ aaaa 24.20
 What is happening????
 
 Artifacts to copy
+build trigger without arti
