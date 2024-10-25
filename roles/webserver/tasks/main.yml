@@ -1,0 +1,42 @@
+---
+# tasks file for webserver
+
+# Install Apache
+- name: install the latest version of Apache
+  become: true
+  ansible.builtin.yum:
+    name: httpd
+    state: latest
+
+# Install Git and clone repo
+- name: install the latest version of Git
+  become: true
+  ansible.builtin.yum:
+    name: git
+    state: latest
+
+- name: Clone a repo 
+  become: true
+  ansible.builtin.git:
+    repo: https://github.com/laraadeboye/tooling.git
+    dest: /var/www/html
+    force: yes
+
+# Deploy tooling website on each of the 2 UAT webservers
+- name: Copy html content one level up 
+  become: true
+  command: cp -r /var/www/html/html /var/www/
+
+# Start Apache
+- name: Start service httpd, if not started
+  become: true
+  ansible.builtin.service:
+    name: httpd
+    state: started
+
+# Delete unwanted directory
+- name: Recursively remove /var/www/html/html directory
+  become: true
+  ansible.builtin.file:
+    path: /var/www/html/html
+    state: absent
