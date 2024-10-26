@@ -8,6 +8,11 @@
     name: httpd
     state: latest
 
+# Configure Git safe directory to allow cloning in /var/www/html
+- name: Set /var/www/html as a safe directory for Git
+  become: true
+  command: git config --global --add safe.directory /var/www/html
+
 # Install Git and clone repo
 - name: install the latest version of Git
   become: true
@@ -27,12 +32,16 @@
   become: true
   command: cp -r /var/www/html/html /var/www/
 
-# Start Apache
+  args:
+    creates: /var/www/html # Copy if destination doesn't exist
+
+# Start and enable Apache
 - name: Start service httpd, if not started
   become: true
   ansible.builtin.service:
     name: httpd
     state: started
+    enabled: yes # Make sure Apache starts on server reboot
 
 # Delete unwanted directory
 - name: Recursively remove /var/www/html/html directory
@@ -40,3 +49,30 @@
   ansible.builtin.file:
     path: /var/www/html/html
     state: absent
+
+# Set proper ownership and permissions
+- name: Set ownership and permissions on web files
+  become: true
+  file:
+    path: /var/www/html
+    owner: apache
+    group: apache
+    mode: '755'
+    recurse: yes
+
+# Ensure SeLinux permissions are correct if SELinux is enabled
+- name: Set SELinux context for web content
+  become: true
+  command: chcon -R -t httpd_sys_content_t /var/www/html
+  when: ansible_selinux.status == "enabled"
+
+# Disable the default welcome page
+- name: Remove default welcome.conf
+  become: true
+  file:
+    path: /etc/httpd/conf.d/welcome.conf
+    state: absent
+  notify: restart httpd
+
+
+
