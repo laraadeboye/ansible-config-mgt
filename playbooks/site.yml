@@ -1,13 +1,29 @@
 ---
-- hosts: all
+# Play 1: Loads dynamic variables for all hosts
 - name: Include dynamic variables
+  hosts: all
   tasks:
+    - name: Load dynamic variables
+      include_tasks: ../dynamic-assignments/env-vars.yml
+      tags:
+        - always
+
+# Play 2: Imports common configuration for all hosts
+- name: Import common playbook
   import_playbook: ../static-assignments/common.yml
-  include: ../dynamic-assignments/env-vars.yml
-  tags:
-    - always
 
-- hosts: uat-webservers
-- import_playbook: ../static-assignments/uat-webservers.yml
+# Play 3: Set up MySQL on database servers
+- name: Set up MySQL
+  hosts: db
+  become: yes
+  vars_files:
+    - ../env-vars/dev.yml  # Change this to ../env-vars/prod.yml for production, etc.
+  roles:
+    - mysql  # Ensure this role is installed and named correctly
 
-
+# Play 4: Specific configuration for UAT webservers only
+- name: Configure UAT webservers 
+  hosts: uat-webserver 
+  tasks:
+    - name: Import UAT specific tasks
+      import_tasks: ../static-assignments/uat-webservers.yml

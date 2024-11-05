@@ -1,3 +1,3 @@
-- hosts: uat-webservers
-  roles:
-    - webserver
+- name: Configure uat-webserver
+  include_role:
+    name: webserver

@@ -1,0 +1,15 @@
+# MySQL configuration for the development environment
+mysql_root_username: "root"
+mysql_root_password: "Passw0rd123#"
+
+# Define databases and users to be created for the dev environment
+mysql_databases:
+  - name: "tooling"
+    encoding: "utf8"
+    collation: "utf8_general_ci"
+
+mysql_users:
+  - name: "webaccess"
+    host: "%"
+    password: "Passw0rd321#"
+    priv: "my_dev_database.*:ALL"
