@@ -11,3 +11,6 @@
 
  [lb]
  172.31.46.249 ansible_ssh_user=ubuntu
+
+ [db:vars]
+ env_vars_file=../env-vars/dev.yml  # Specify environment variables file for database setup
