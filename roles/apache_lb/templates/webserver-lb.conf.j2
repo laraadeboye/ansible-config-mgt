@@ -1,0 +1,20 @@
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <Proxy "balancer://mycluster">
+        {% for server in backend_servers %}
+        BalancerMember "http://{{ server.hostname }}:{{ server.port}}"
+        {% endfor %}
+          
+        # ProxySet lbmethod=byrequests
+        ProxySet lbmethod=bytraffic
+    </Proxy>
+
+    ProxyPreserveHost On
+    ProxyPass "/" "balancer://mycluster/"
+    ProxyPassReverse "/" "balancer://mycluster/"
+</VirtualHost>

@@ -23,7 +23,17 @@
 
 # Play 4: Specific configuration for UAT webservers only
 - name: Configure UAT webservers 
-  hosts: uat-webserver 
+  hosts: uat-webservers
   tasks:
     - name: Import UAT specific tasks
       import_tasks: ../static-assignments/uat-webservers.yml
+
+# Play 5: Configure load balancers for UAT
+- name: Configure load balancer for UAT
+  hosts: lb # load balancer defined in inventory/uat.yml
+  vars_files:
+    - "env-vars/uat.yml"
+  roles:
+    - { role: nginx_lb, when: load_balancer_is_required and enable_nginx_lb }
+    - { role: apache_lb, when: load_balancer_is_required and enable_apache_lb }
+  

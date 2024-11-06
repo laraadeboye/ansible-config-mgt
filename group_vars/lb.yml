@@ -1,0 +1,11 @@
+# group_vars/lb.yml
+
+# Set lb_type per host
+172.31.46.249:
+  lb_type: "nginx"
+
+172.31.16.59:
+  lb_type: "apache"
+
+# Common variables for all load balancers
+lb_port: 80

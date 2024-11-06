@@ -1,0 +1,14 @@
+---
+# defaults file for apache_lb
+
+enable_apache_lb: false
+load_balancer_is required: false
+web_servers_hosts:
+  - { ip: "172.31.32.255", hostname: "web01" }
+  - { ip: "172.31.35.27", hostname: "web02" }
+  - { ip: "172.31.32.34", hostname: "web03" }
+
+backend_servers:
+  - { hostname: "web01", port: "80" }
+  - { hostname: "web02", port: "80" }
+  - { hostname: "web03", port: "80" }
