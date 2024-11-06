@@ -1,0 +1,10 @@
+---
+# handlers file for nginx_lb
+
+- name: reload nginx
+  service:
+    name: nginx
+    state: reloaded
+  become: true
+  when: lb_type == "nginx"
+

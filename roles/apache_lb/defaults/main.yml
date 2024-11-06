@@ -2,13 +2,10 @@
 # defaults file for apache_lb
 
 enable_apache_lb: false
-load_balancer_is required: false
-web_servers_hosts:
-  - { ip: "172.31.32.255", hostname: "web01" }
-  - { ip: "172.31.35.27", hostname: "web02" }
-  - { ip: "172.31.32.34", hostname: "web03" }
+load_balancer_is_required: false
 
-backend_servers:
-  - { hostname: "web01", port: "80" }
-  - { hostname: "web02", port: "80" }
-  - { hostname: "web03", port: "80" }
+# Variable for server name and port
+apache_server_name: 54.226.233.195  # Server name to use in nginx config
+apache_listen_port: 80  # Port to listen on
+
+  
