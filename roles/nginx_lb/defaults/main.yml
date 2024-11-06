@@ -1,0 +1,9 @@
+---
+# defaults file for nginx_lb
+
+enable_nginx_lb: false
+load_balancer_is_required: false
+
+# Variable for server name and port
+nginx_server_name: 52.90.143.249  # Server name to use in nginx config
+nginx_listen_port: 80  # Port to listen on

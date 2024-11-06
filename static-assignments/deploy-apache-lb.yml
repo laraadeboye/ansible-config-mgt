@@ -1,0 +1,14 @@
+- name: Deploy Apache Load Balancer
+  hosts: lb
+  become: true
+  tasks:
+    - name: Deploy Apache Load Balancer
+      include_role:
+        name: apache_lb
+      when: lb_type == 'apache'
+
+    
+
+
+      
+  
