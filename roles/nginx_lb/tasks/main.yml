@@ -34,7 +34,7 @@
   notify:
     - reload nginx
 
-- name: Remove default nginx site
+- name: Remove default nginx site # often solves 404 error
   file:
     path: /etc/nginx/sites-enabled/default
     state: absent

@@ -8,8 +8,8 @@
     <Proxy "balancer://mycluster">
         {% for server in backend_servers %}
         BalancerMember "http://{{ server.hostname }}:{{ server.port}}"
-        {% endfor %}
-          
+        { % endfor % }
+            
         # ProxySet lbmethod=byrequests
         ProxySet lbmethod=bytraffic
     </Proxy>

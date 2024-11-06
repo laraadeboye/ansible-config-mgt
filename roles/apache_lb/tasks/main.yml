@@ -1,76 +1,26 @@
----
 # tasks file for apache_lb
-# update apt repository
-- name: Update and install Apache
-  become: true
-  apt:
-    name: apache2
-    state: present
-    update_cache: yes
+- name: Check if webserver-lb.conf exists
+  stat:
+    path: "/etc/apache2/sites-available/webserver-lb.conf"
+  register: existing_conf
+  when: lb_type == "apache"
 
-- name: Install development package for libxml2 library
+- name: Backup existing webserver-lb.conf if it exists
+  copy:
+    src: "/etc/apache2/sites-available/webserver-lb.conf"
+    dest: "/etc/apache2/sites-available/webserver-lb.conf.backup"
+    remote_src: yes
   become: true
-  apt:
-    name: libxml2-dev
-    state: present
-    update_cache: yes
+  when: 
+    - lb_type == "apache"
+    - existing_conf.stat.exists
 
-# Enable apache modules 
-- name: Enable Apache modules for load balancing
-  become: true
-  command: "a2enmod {{ item }}"
-  loop:
-    - proxy
-    - proxy_http
-    - proxy_balancer
-    - lbmethod_bytraffic
-    - headers
+- name: Disable existing webserver-lb.conf if it exists
+  command: a2dissite webserver-lb.conf
+  when: 
+    - lb_type == "apache"
+    - existing_conf.stat.exists
   notify: restart apache
-
-# Configure local dns
-- name: Update /etc/hosts with backend server hostnames
-  become: true
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ item.ip }} {{ item.hostname }}"
-    state: present
-    create: yes
-  loop: "{{ web_servers_hosts }}"
-  tags:
-    - dns
-
-# Configure load balancer
-- name: Create load balancing configuration
-  become: true
-  template:
-    src: webserver-lb.conf.j2
-    dest: /etc/apache2/sites-available/webserver-lb.conf
-    owner: root
-    group: root
-    mode: '0644'
-  notify: restart apache
-  tags:
-    - apache
-
-# enable the webserver-lb config
-- name: Enable webserver load balancer configuration
-  become: true
-  command: a2ensite webserver-lb.conf
-  notify: restart apache
-  tags:
-    - apache
-
-# disable the default config
-- name: Disable default Apache site configuration
-  become: true
-  command: a2dissite 000-default.conf
-  notify: restart apache
-  tags:
-    - apache
-
-
-
-# Conditional logic to enable or disable apache lb
 
 - name: Ensure Apache is started for UAT if enabled
   service:
@@ -80,6 +30,7 @@
   when:
     - enable_apache_lb
     - load_balancer_is_required
+    - lb_type == "apache"
 
 - name: Stop Apache if not required
   service:
@@ -88,3 +39,58 @@
   when:
     - not enable_apache_lb
     - load_balancer_is_required
+    - lb_type == "apache"
+
+- name: Configure Apache Load Balancer if enabled
+  template:
+    src: "apache-lb.conf.j2"
+    dest: "/etc/apache2/sites-available/load-balancer.conf"
+    mode: '0644'
+  become: true
+  when:
+    - enable_apache_lb
+    - load_balancer_is_required
+    - lb_type == "apache"
+  notify:
+    - restart apache
+
+# Enable the required modules for load balancing
+- name: Enable required Apache modules
+  command: "a2enmod {{ item }}"
+  with_items:
+    - proxy
+    - proxy_http
+    - proxy_balancer
+    - lbmethod_byrequests
+  become: true
+  when: lb_type == "apache"
+  notify: restart apache
+
+# enable the load-balancer config
+- name: Enable apache load balancer configuration
+  command: a2ensite load-balancer.conf
+  become: true
+  when: lb_type == "apache"
+  notify: restart apache
+  tags:
+    - apache
+
+# disable the default config
+- name: Disable default Apache site configuration
+  command: a2dissite 000-default.conf
+  become: true
+  when: lb_type == "apache"
+  notify: restart apache
+  tags:
+    - apache
+
+# Verify configuration
+- name: Verify Apache configuration
+  command: apache2ctl configtest
+  register: apache_config_test
+  when: lb_type == "apache"
+
+- name: Display Apache configuration test results
+  debug:
+    var: apache_config_test.stdout_lines
+  when: lb_type == "apache"

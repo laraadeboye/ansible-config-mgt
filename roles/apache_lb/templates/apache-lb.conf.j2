@@ -1,0 +1,18 @@
+<Proxy "balancer://uat_backend">
+    {% for server in groups['uat-webservers'] %}
+    BalancerMember "http://{{ hostvars[server].ansible_host }}"
+    {% endfor %}
+    ProxySet lbmethod=byrequests
+</Proxy>
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    ServerName {{ apache_server_name | default('_') }}
+
+    ProxyPreserveHost On
+    ProxyPass / balancer://uat_backend/
+    ProxyPassReverse / balancer://uat_backend/
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
