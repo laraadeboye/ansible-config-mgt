@@ -4,8 +4,8 @@ pipeline {
         stage('SCM checkout') {
             steps {
                 git branch: 'main',
-                    credentialsId: '[github-credentials id]',
-                    url: '[github url]'
+                    credentialsId: '74ca1016-facc-42b7-8442-e10e307d8f27',
+                    url: 'https://github.com/laraadeboye/ansible-config-mgt'
             }
         }
         stage('Execute Ansible') {
