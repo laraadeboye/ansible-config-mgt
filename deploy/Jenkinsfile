@@ -1,39 +1,21 @@
 pipeline {
-    agent any   
+    agent any
     stages {
-        stage('Build') {
+        stage('SCM checkout') {
             steps {
-                script {
-                    sh 'echo "Building the application"'
-                }
+                git branch: 'main',
+                    credentialsId: '[github-credentials id]',
+                    url: '[github url]'
             }
         }
-        stage('Test') {
+        stage('Execute Ansible') {
             steps {
-                script {
-                    sh 'echo "Testing the application"'
-                }
-            }
-        }
-        stage('Package') {
-            steps {
-                script {
-                    sh 'echo "Packaging the application"'
-                }
-            }
-        }
-        stage('Deploy') {
-            steps {
-                script {
-                    sh 'echo "Deploying the application"'
-                }
-            }
-        }
-        stage('Clean up') {
-            steps {
-                script {
-                    sh 'echo "Cleaning up"'
-                }
+                ansiblePlaybook credentialsId: 'private-key',
+                    disableHostKeyChecking: true,
+                    installation: 'ansible',
+                    inventory: 'inventory/dev.yml',
+                    playbook: 'static-assignments/common.yml',
+                    vaultTmpPath: ''
             }
         }
     }
