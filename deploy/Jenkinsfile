@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent any   
     stages {
         stage('Build') {
             steps {
@@ -15,6 +15,26 @@ pipeline {
                 }
             }
         }
+        stage('Package') {
+            steps {
+                script {
+                    sh 'echo "Packaging the application"'
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    sh 'echo "Deploying the application"'
+                }
+            }
+        }
+        stage('Clean up') {
+            steps {
+                script {
+                    sh 'echo "Cleaning up"'
+                }
+            }
+        }
     }
 }
-
