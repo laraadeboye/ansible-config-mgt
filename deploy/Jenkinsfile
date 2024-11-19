@@ -2,6 +2,7 @@ pipeline {
     agent any
     parameters {
         string(name: 'inventory', defaultValue: 'dev', description: 'This decides the environment to deploy')
+        string(name: 'tags', defaultValue: '', description: 'Comma-separated tags for limiting Ansible execution (e.g., webserver,db)')
     }
     stages {
         stage('SCM checkout') {
