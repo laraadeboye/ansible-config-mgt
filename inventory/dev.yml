@@ -13,5 +13,17 @@
  172.31.46.249 ansible_ssh_user=ubuntu # Nginx
  172.31.16.59 ansible_ssh_user=ubuntu # Apache
 
+ 
+
+ [nfs:vars]
+ ansible_python_interpreter=/usr/bin/python3
+
+ [webservers:vars]
+ ansible_python_interpreter=/usr/bin/python3
+
  [db:vars]
+ ansible_python_interpreter=/usr/bin/python3
  env_vars_file=../env-vars/dev.yml  # Specify environment variables file for database setup
+
+ [lb:vars]
+ ansible_python_interpreter=/usr/bin/python3
