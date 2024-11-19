@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    parameters 
+        string(name: 'inventory', defaultValue: 'dev', description: 'This decides the environment to deploy')
+    }
     stages {
         stage('SCM checkout') {
             steps {
@@ -10,12 +13,14 @@ pipeline {
         }
         stage('Execute Ansible') {
             steps {
-                ansiblePlaybook credentialsId: 'private-key',
+                ansiblePlaybook( 
+                    credentialsId: 'private-key',
                     disableHostKeyChecking: true,
                     installation: 'ansible',
-                    inventory: 'inventory/dev.yml',
+                    inventory: '${params.inventory}',
                     playbook: 'static-assignments/common.yml',
                     vaultTmpPath: ''
+               )
             }
         }
     }
