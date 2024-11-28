@@ -1,0 +1,10 @@
+# templates/system.yml.j2
+configVersion: 1
+shared:
+  artifactory:
+    data:
+      dir: "{{ artifactory_data_volume }}/data"
+    backup:
+      dir: "{{ artifactory_data_volume }}/backup"
+    logs:
+      dir: "{{ artifactory_data_volume }}/logs"

@@ -1,0 +1,133 @@
+# tasks/artifactory-install.yml
+---
+- name: Update System Packages
+  ansible.builtin.apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Install Java and Dependencies
+  ansible.builtin.apt:
+    name:
+      - openjdk-8-jdk
+      - wget
+      - unzip
+    state: present
+
+- name: Find Java Installation Path
+  ansible.builtin.shell: |
+    update-alternatives --query java | grep '^Value: ' | awk '{print $2}' | sed 's|/bin/java||'
+  register: java_home_path
+  changed_when: false
+
+- name: Set JAVA_HOME Environment Variable Globally
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^JAVA_HOME='
+    line: 'JAVA_HOME={{ java_home_path.stdout }}'
+    state: present
+
+- name: Reload Environment Variables
+  ansible.builtin.shell: source /etc/environment
+  args:
+    executable: /bin/bash
+
+
+- name: Create Artifactory Group
+  ansible.builtin.group:
+    name: "{{ artifactory_group }}"
+    state: present
+
+- name: Create Artifactory User
+  ansible.builtin.user:
+    name: "{{ artifactory_user }}"
+    group: "{{ artifactory_group }}"
+    home: "{{ artifactory_home }}"
+    shell: /bin/false
+    system: yes
+
+- name: Create Artifactory Directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ artifactory_user }}"
+    group: "{{ artifactory_group }}"
+    mode: '0755'
+  loop:
+    - "{{ artifactory_data_volume }}/data"
+    - "{{ artifactory_data_volume }}/backup"
+    - "{{ artifactory_data_volume }}/logs"
+    - "{{ artifactory_home }}"
+
+- name: Download Artifactory
+  ansible.builtin.get_url:
+    url: "{{ artifactory_download_url }}"
+    dest: "/tmp/artifactory-{{ artifactory_version }}.tar.gz"
+    mode: '0644'
+
+- name: Unpack Artifactory
+  ansible.builtin.unarchive:
+    src: "/tmp/artifactory-{{ artifactory_version }}.tar.gz"
+    dest: "{{ artifactory_home }}"
+    remote_src: yes
+    creates: "{{ artifactory_home }}/artifactory-oss-{{ artifactory_version }}"
+    owner: "{{ artifactory_user }}"
+    group: "{{ artifactory_group }}"
+
+- name: Ensure Artifactory files ownership
+  ansible.builtin.file:
+    path: "{{ artifactory_home}}"
+    owner: "{{ artifactory_user }}"
+    group: "{{ artifactory_group }}"
+    recurse: yes
+
+
+- name: Create Symlink
+  ansible.builtin.file:
+    src: "{{ artifactory_home }}/artifactory-oss-{{ artifactory_version }}"
+    path: "{{ artifactory_home }}/current"
+    state: link
+    force: yes
+    owner: "{{ artifactory_user }}"
+    group: "{{ artifactory_group }}"
+
+- name: Ensure Artifactory Etc Directory Exists
+  ansible.builtin.file:
+    path: "{{ artifactory_home }}/current/var/etc"
+    state: directory
+    owner: "{{ artifactory_user }}"
+    group: "{{ artifactory_group }}"
+    mode: '0755'
+
+- name: Configure Artifactory System YAML
+  ansible.builtin.template:
+    src: system.yml.j2
+    dest: "{{ artifactory_home }}/current/var/etc/system.yaml"
+    owner: "{{ artifactory_user }}"
+    group: "{{ artifactory_group }}"
+    mode: '0640'
+
+- name: Set Up Systemd Service
+  ansible.builtin.template:
+    src: artifactory.service.j2
+    dest: /etc/systemd/system/artifactory.service
+    mode: '0644'
+
+- name: Ensure Correct Permissions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+    owner: "{{ artifactory_user }}"
+    group: "{{ artifactory_group }}"
+  loop:
+    - "{{ artifactory_home }}/current/bin"
+    - "{{ artifactory_data_volume }}/data"
+    - "{{ artifactory_data_volume }}/backup"
+    - "{{ artifactory_data_volume }}/logs"
+
+- name: Enable and Start Artifactory Service
+  ansible.builtin.systemd:
+    name: artifactory
+    enabled: yes
+    state: started
+    daemon_reload: yes

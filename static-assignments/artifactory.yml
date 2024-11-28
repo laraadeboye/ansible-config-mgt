@@ -1,0 +1,39 @@
+---
+- hosts: artifactory_servers
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    venv_path: /opt/ansible_venv
+
+  pre_tasks:
+    - name: Ensure required system packages are installed
+      ansible.builtin.apt:
+        name:
+          - lvm2
+          - python3-pip
+          - python3-venv
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Create Ansible virtual environment
+      ansible.builtin.command:
+        cmd: python3 -m venv {{ venv_path }}
+        creates: "{{ venv_path }}/bin/activate"
+
+    - name: Upgrade pip in virtual environment
+      ansible.builtin.pip:
+        name: pip
+        state: latest
+        virtualenv: "{{ venv_path }}"
+
+    - name: Install required Python libraries in virtual environment
+      ansible.builtin.pip:
+        name:
+          - boto3
+          - botocore
+        virtualenv: "{{ venv_path }}"
+
+  roles:
+    - jfrog-artifactory
+

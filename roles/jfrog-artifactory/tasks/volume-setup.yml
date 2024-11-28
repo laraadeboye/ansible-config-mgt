@@ -1,0 +1,63 @@
+# tasks/volume-setup.yml
+---
+- name: Check Volume Attachment
+  block:
+    - name: Verify Volume Device Exists
+      ansible.builtin.stat:
+        path: "{{ volume_device }}"
+      register: volume_device_check
+
+    - name: Fail if Volume Not Attached
+      ansible.builtin.fail:
+        msg: "Volume {{ volume_device }} not detected. Please attach in AWS console."
+      when: not volume_device_check.stat.exists
+
+- name: Prepare Volume
+  block:
+    - name: Check if Volume is Formatted
+      ansible.builtin.shell: |
+        blkid {{ volume_device }} || echo "not_formatted"
+      register: volume_format_check
+      changed_when: false
+
+    - name: Format Volume if Unformatted
+      community.general.filesystem:
+        fstype: ext4
+        dev: "{{ volume_device }}"
+      when: "'not_formatted' in volume_format_check.stdout"
+
+    - name: Create Artifactory Data Mount Point
+      ansible.builtin.file:
+        path: "{{ artifactory_data_volume }}"
+        state: directory
+        mode: '0755'
+
+    - name: Mount Volume
+      ansible.posix.mount:
+        path: "{{ artifactory_data_volume }}"
+        src: "{{ volume_device }}"
+        fstype: ext4
+        state: mounted
+        opts: defaults,noatime,nodiratime
+
+    - name: Ensure Persistent Mount
+      ansible.posix.mount:
+        path: "{{ artifactory_data_volume }}"
+        src: "{{ volume_device }}"
+        fstype: ext4
+        state: mounted
+        opts: defaults,noatime,nodiratime
+        dump: 0
+        passno: 2
+
+
+    - name: Validate Volume Space
+      ansible.builtin.shell: |
+        df -h "{{ artifactory_data_volume }}" | awk 'NR==2 {print $5}' | sed 's/%//'
+      register: volume_usage
+      changed_when: false
+
+    - name: Fail if Insufficient Space
+      ansible.builtin.fail:
+        msg: "Insufficient volume space. Current usage: {{ volume_usage.stdout }}%"
+      when: volume_usage.stdout | int > (100 - min_free_space_percentage)
