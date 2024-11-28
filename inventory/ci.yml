@@ -7,5 +7,5 @@
 [sonarqube]
 172.31.90.184 ansible_ssh_user=ubuntu
 
-[artifact_repository]
+[artifactory_servers]
 172.31.88.105 ansible_ssh_user=ubuntu

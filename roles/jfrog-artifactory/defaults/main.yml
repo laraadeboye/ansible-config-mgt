@@ -1,0 +1,17 @@
+---
+# defaults file for jfrog-artifactory
+
+# Artifactory Configuration
+artifactory_version: "6.9.6"
+artifactory_home: "/mnt/artifactory-data/artifactory"
+artifactory_data_volume: "/mnt/artifactory-data"
+  # artifactory_download_url: "https://releases.jfrog.io/artifactory/bintray-artifactory/org/artifactory/oss/jfrog-artifactory-oss/{{ artifactory_version }}/jfrog-artifactory-oss-{{ artifactory_version }}-linux.tar.gz"
+artifactory_download_url: "https://jfrog.bintray.com/artifactory/jfrog-artifactory-oss-{{ artifactory_version }}.zip"
+
+# User and Group
+artifactory_user: "artifactory"
+artifactory_group: "artifactory"
+
+# Volume Configuration
+volume_device: "/dev/xvdf"
+min_free_space_percentage: 20

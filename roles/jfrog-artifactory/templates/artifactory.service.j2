@@ -1,0 +1,18 @@
+# templates/artifactory.service.j2
+[Unit]
+Description=JFrog Artifactory OSS
+After=network.target
+
+[Service]
+Type=forking
+User={{ artifactory_user }}
+Group={{ artifactory_group }}
+Environment="JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64"
+ExecStart={{ artifactory_home }}/current/bin/artifactory.sh start
+ExecStop={{ artifactory_home }}/current/bin/artifactory.sh stop
+WorkingDirectory={{ artifactory_home }}/current/
+Restart=on-failure
+RestartSec=30s
+
+[Install]
+WantedBy=multi-user.target

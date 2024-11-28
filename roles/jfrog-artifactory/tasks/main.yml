@@ -1,0 +1,8 @@
+---
+# tasks file for jfrog-artifactory
+
+- name: Validate and Prepare Volume
+  ansible.builtin.import_tasks: volume-setup.yml
+
+- name: Install Artifactory
+  ansible.builtin.import_tasks: artifactory-install.yml
