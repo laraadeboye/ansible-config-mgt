@@ -1,0 +1,18 @@
+---
+# defaults file for php
+#
+php_packages:
+  - php 7.4
+  - libapache2-mod-php
+  - phploc
+  - php-cli
+  - php-mbstring
+  - php-xml
+  - php-zip  
+  - php-mysql
+  - php-gd
+  - php-intl
+  - php-bz2
+  - php-bcmath
+  - curl 
+  - unzip
