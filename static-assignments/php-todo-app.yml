@@ -1,0 +1,146 @@
+---
+# pre-tasks
+- name: Install DNF plugins and system utilities
+  ansible.builtin.dnf:
+    name: 
+      - dnf-plugins-core
+      - yum-utils
+    state: present
+  become: true
+  register: dnf_plugins
+  retries: 3
+  delay: 5
+  until: dnf_plugins is succeeded
+
+- name: Add EPEL and Remi Repositories
+  block:
+    - name: Download and install EPEL repository
+      ansible.builtin.dnf:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
+        disable_gpg_check: yes
+        state: present
+      become: true
+      register: epel_repo
+      retries: 3
+      delay: 5
+      until: epel_repo is succeeded
+
+    - name: Download and install Remi repository
+      ansible.builtin.dnf:
+        name: "https://rpms.remirepo.net/enterprise/remi-release-9.rpm"
+        disable_gpg_check: yes
+        state: present
+      become: true
+      register: remi_repo
+
+    - name: Enable Remi repository for PHP
+      ansible.builtin.command: 
+        cmd: dnf config-manager --enable remi
+      changed_when: false
+      become: true
+
+# main tasks
+- name: Configure PHP and Apache for PHP-Todo app
+  block:
+    - name: Install PHP-FPM and Apache (httpd)
+      ansible.builtin.dnf:
+        name:
+          - php-fpm
+          - httpd
+        state: present
+      become: true
+
+    - name: Ensure PHP-FPM and Apache services are running
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop:
+        - php-fpm
+        - httpd
+
+    - name: Install PHP and extensions
+      ansible.builtin.dnf:
+        name:
+          - php
+          - php-opcache
+          - php-gd
+          - php-curl
+          - php-mysqlnd
+          - php-common
+          - php-mbstring
+          - php-intl
+          - php-xml
+          - php-json
+          - unzip
+        state: present
+        enablerepo: remi-{{ php_version }}
+
+    - name: Deploy PHP-Todo application
+      block:
+        - name: Download application artifact
+          ansible.builtin.get_url:
+            url: "{{ app_artifact_url }}"
+            dest: "/home/ec2-user/php-todo.zip"
+            url_username: "{{ artifact_username }}"
+            url_password: "{{ artifact_password }}"
+            mode: '0644'
+            
+
+        - name: Unzip application artifact
+          ansible.builtin.unarchive:
+            src: "/home/ec2-user/php-todo.zip"
+            dest: "{{ app_destination }}"
+            remote_src: yes
+            owner: apache
+            group: apache
+
+        - name: Set correct SELinux contexts
+          ansible.builtin.command:
+            cmd: "{{ item }}"
+          loop:
+            - chcon -R -t httpd_sys_content_t "{{ app_destination }}"
+            - chcon -R -t httpd_sys_rw_content_t "{{ app_destination }}"
+
+        - name: Set file permissions
+          ansible.builtin.file:
+            path: "{{ app_destination }}"
+            owner: apache
+            group: apache
+            mode: '0775'
+            recurse: yes
+
+    - name: Application configuration
+      block:
+        - name: Generate APP_KEY
+          ansible.builtin.command:
+            cmd: php artisan key:generate
+            chdir: "{{ app_destination }}"
+          ignore_errors: yes
+
+        - name: Clear configuration cache
+          ansible.builtin.command:
+            cmd: php artisan config:cache
+            chdir: "{{ app_destination }}"
+          ignore_errors: yes
+
+
+- name: Restart services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - httpd
+    - php-fpm
+
+# Debugging tasks (optional, can be commented out in production)
+- name: Verify PHP installation
+  ansible.builtin.command:
+    cmd: php -v
+  register: php_version_output
+  changed_when: false
+
+- name: Display PHP version
+  ansible.builtin.debug:
+    var: php_version_output.stdout_lines
+

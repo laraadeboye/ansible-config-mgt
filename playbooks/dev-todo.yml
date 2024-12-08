@@ -1,0 +1,9 @@
+# Play 1: Configure development webserver for php-todo-app
+- name: Configure DEV-php-todo webserver
+  hosts: todo
+  become: true
+  vars_files:
+    - "../env-vars/dev.yml" 
+  tasks:
+    - name: Configure todo app dev webserver
+      import_tasks: ../static-assignments/php-todo-app.yml
