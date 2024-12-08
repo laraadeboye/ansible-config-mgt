@@ -36,4 +36,20 @@
   roles:
     - { role: nginx_lb, when: load_balancer_is_required and enable_nginx_lb }
     - { role: apache_lb, when: load_balancer_is_required and enable_apache_lb }
-  
+ 
+# Play 6: Install PHP and Dependencies on jenkins-ansible server
+- name: Install PHP, Dependencies and composer
+  hosts: jenkins
+  become: yes
+  roles: 
+    - php
+
+# Play 7: Configure development webserver for php-todo-app
+- name: Configure DEV-php-todo webserver
+  hosts: todo
+  become: true
+  vars_files:
+    - "env-vars/dev.yml" 
+  tasks:
+    - name: Configure todo app dev webserver
+      import_tasks: ../static-assignments/php-todo-app.yml

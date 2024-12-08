@@ -1,15 +1,34 @@
 # MySQL configuration for the development environment
-mysql_root_username: "root"
-mysql_root_password: "Passw0rd123#"
+# Ideally a stronger password should be set. Can be modified to use vault for password storage
 
-# Define databases and users to be created for the dev environment
+mysql_root_password: "Passw0rd123#"
+mysql_root_username: "root"
+
+# Databases and users to be used for the dev environment
+# Databases.
 mysql_databases:
+  - name: "homestead"
+    collation: "utf8_general_ci"
+    encoding: "utf8"
   - name: "tooling"
     encoding: "utf8"
     collation: "utf8_general_ci"
 
+# Users.
 mysql_users:
+  - name: "homestead"
+    host: "%"
+    password: "Passw0rd321#"
+    priv: "homestead.*:ALL"
   - name: "webaccess"
     host: "%"
     password: "Passw0rd321#"
-    priv: "my_dev_database.*:ALL"
+    priv: "tooling.*:ALL"
+
+# php-todo-app variables for the development environment
+
+php_version: 7.4
+app_artifact_url: "https://artifactory.infradev.laraadeboye.com/artifactory/todo-artifact-local/php-todo"
+app_destination: "/var/www/html"
+artifact_username: "admin"
+artifact_password: "Passw0rd123#"

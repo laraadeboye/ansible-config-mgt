@@ -6,6 +6,39 @@
   apt:
     update_cache: yes
 
+- name: Install software-properties-common
+  become: yes
+  apt:
+    name: software-properties-common
+    state: present
+
+- name: Add Ondřej Surý PPA for PHP
+  become: yes
+  apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+
+- name: Update apt cache after adding PPA
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: Remove existing PHP packages
+  become: yes
+  apt:
+    name: "{{ item }}"
+    state: absent
+    purge: yes
+  loop:
+    - php*
+    - libapache2-mod-php*
+  ignore_errors: yes
+
+- name: Autoremove any leftover PHP dependencies
+  become: yes
+  command: apt-get autoremove -y
+  changed_when: false
+
 - name: Install PHP and dependencies
   become: yes
   package:
