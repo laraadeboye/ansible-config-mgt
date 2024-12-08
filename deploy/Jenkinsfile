@@ -19,7 +19,7 @@ pipeline {
                     disableHostKeyChecking: true,
                     installation: 'ansible',
                     inventory: "inventory/${params.inventory}.yml",
-                    playbook: 'static-assignments/common.yml',
+                    playbook: 'playbooks/dev-todo.yml',
                     vaultTmpPath: ''
                 )
             }
