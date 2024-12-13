@@ -19,3 +19,4 @@ php_packages:
   - "php{{ php_version }}-xdebug"
   - curl 
   - unzip
+  - zip
