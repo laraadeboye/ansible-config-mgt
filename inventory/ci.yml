@@ -1,6 +1,10 @@
 [jenkins]
 172.31.28.125 ansible_ssh_user=ubuntu
 
+[jenkins-agents]
+172.31.90.64 ansible_ssh_user=ubuntu
+172.31.95.81 ansible_ssh_user=ubuntu
+
 [nginx-proxy]
 172.31.34.204 ansible_ssh_user=ubuntu
 

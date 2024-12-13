@@ -90,3 +90,16 @@
   file:
     path: /tmp/composer-setup.php
     state: absent
+
+- name: Install Xdebug
+  become: yes
+  apt:
+    name: php{{ php_version }}-xdebug
+    state: present
+
+- name: Configure PHP for code coverage
+  become: yes
+  lineinfile:
+    path: "/etc/php/{{ php_version }}/cli/php.ini"
+    line: "xdebug.mode=coverage"
+    state: present

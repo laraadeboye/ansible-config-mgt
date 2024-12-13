@@ -1,0 +1,7 @@
+# Play 1: Install PHP and Dependencies on jenkins-ansible server
+- name: Install PHP, Dependencies and composer
+  hosts: jenkins-agents
+  become: yes
+  roles:
+    - php
+
